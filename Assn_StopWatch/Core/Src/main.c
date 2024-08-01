@@ -62,7 +62,6 @@ static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 void Print_Time(void);
 void Reset_Time(void);
-//void Record_Time(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -72,7 +71,7 @@ char tx_buf[30];
 bool running = false;
 bool display_time = true;
 uint8_t count = 0;
-char lap_time[5][30];
+char save_time[5][30];
 /* USER CODE END 0 */
 
 /**
@@ -348,16 +347,9 @@ void Reset_Time(void)
 	running = false;
 	display_time = true;
 	count = 0;
+	memset(save_time, 0, sizeof(save_time));
 	Print_Time();
 }
-
-//void Record_Time(void)
-//{
-//	if(count < 5) {
-//		sprintf(lap_time[count], "%d�??? >> %02d:%02d:%02d:%02d\r\n", count + 1, h, m, s, ms);
-//		count++;
-//	}
-//}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -367,41 +359,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			running = true; //타이머 동작 상태 설정
 		}
 		else { //타이머가 동작 중이라면
-			display_time = false; //시간 표시 중지
 			if(count < 5) {
-				sprintf(lap_time[count], "%d번 >> %02d:%02d:%02d:%02d\r\n", count + 1, h, m, s, ms);
+				sprintf(save_time[count], "%d번 >> %02d:%02d:%02d:%02d\r\n", count + 1, h, m, s, ms);
 				count++;
 			}
-			HAL_TIM_Base_Start_IT(&htim4);
-		}
-
-		if(count >= 5) {
-			for(int i = 0; i < count; i++) {
-				HAL_UART_Transmit(&huart3, (uint8_t*)lap_time[i], strlen(lap_time[i]), 100);
+			if(count == 5) {
+				for(int i = 0; i < count; i++) {
+					HAL_UART_Transmit(&huart3, (uint8_t*)save_time[i], strlen(save_time[i]), 100);
+				}
+				HAL_TIM_Base_Stop_IT(&htim3);
+				Reset_Time();
 			}
-			Reset_Time();
+			else {
+				display_time = false; //시간 표시 중지
+				HAL_TIM_Base_Start_IT(&htim4);
+			}
 		}
-//		else if(!pause) {
-////			for(int i = 0; i < 100; i++) {
-////				sprintf(lap_time[count], "%02d:%02d:%02d:%02d\r", h, m, s, ms);
-////			}
-//			HAL_TIM_Base_Start_IT(&htim4);
-//			display_time = false;
-//			pause = true;
-//		}
-//		else {
-//			if(count < 5) {
-//				Record_Time();
-//				HAL_TIM_Base_Start_IT(&htim4);
-//			}
-//			else {
-//				for(int i = 0; i <= count; i++) {
-//					HAL_UART_Transmit(&huart3, (uint8_t*)lap_time[i], strlen(lap_time[i]), 100);
-//				}
-//				Reset_Time();
-//				HAL_TIM_Base_Stop_IT(&htim3);
-//			}
-//		}
 	}
 }
 
@@ -421,9 +394,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(display_time) Print_Time(); //시간 표시 상태가 true일 때만 출력
 	}
 	else if(htim->Instance == TIM4) {
-		//HAL_UART_Transmit(&huart3, (uint8_t*)lap_time[count], strlen(lap_time[count]), 100);
 		HAL_TIM_Base_Stop_IT(&htim4);
-		//pause = false;
 		display_time = true; //시간 표시 재개
 	}
 }
