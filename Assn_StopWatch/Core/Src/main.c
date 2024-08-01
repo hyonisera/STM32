@@ -348,6 +348,7 @@ void Reset_Time(void)
 	display_time = true;
 	count = 0;
 	memset(save_time, 0, sizeof(save_time));
+	HAL_UART_Transmit(&huart3, (uint8_t*)"\r\n", 2, 100); // Send a new line
 	Print_Time();
 }
 
