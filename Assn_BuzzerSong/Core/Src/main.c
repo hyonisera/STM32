@@ -52,7 +52,8 @@ enum scale {
 	G5 = 1276,
 	A5 = 1136,
 	B5 = 1012,
-	C6 = 956
+	C6 = 956,
+	sn = 0
 };
 
 enum note {
@@ -62,14 +63,15 @@ enum note {
 	l4 = 500,
 	l8 = 250,
 	l8p = 167,
-	l16 = 125
+	l16 = 125,
+	nn = 50
 };
 
-const uint32_t bell[] = {E5, D5, C5, D5, E5, E5, E5, D5, D5, D5, E5, E5, E5,
-					E5, D5, C5, D5, E5, E5, E5, D5, D5, E5, D5, C5};
+const uint32_t bell[] = {E5, sn, D5, sn, C5, sn, D5, sn, E5, sn, E5, sn, E5, sn, D5, sn, D5, sn, D5, sn, E5, sn, E5, sn, E5, sn,
+					E5, sn, D5, sn, C5, sn, D5, sn, E5, sn, E5, sn, E5, sn, D5, sn, D5, sn, E5, sn, D5, sn, C5, sn};
 
-const uint32_t interval[] = {l3, l8, l4, l4, l4, l4, l2, l4, l4, l2, l4, l4, l2,
-					l3, l8, l4, l4, l4, l4, l2, l4, l4, l3, l8, l1};
+const uint32_t interval[] = {l3, nn, l8, nn, l4, nn, l4, nn, l4, nn, l4, nn, l2, nn, l4, nn, l4, nn, l2, nn, l4, nn, l4, nn, l2, nn,
+					l3, nn, l8, nn, l4, nn, l4, nn, l4, nn, l4, nn, l2, nn, l4, nn, l4, nn, l3, nn, l8, nn, l1, l2};
 int bell_index = 0;
 int interval_index = 0;
 //int note_index = 0;
