@@ -41,15 +41,46 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
+enum scale {
+	C5 = 1911,
+	D5 = 1703,
+	E5 = 1517,
+	F5 = 1432,
+	G5 = 1276,
+	A5 = 1136,
+	B5 = 1012,
+	C6 = 956
+};
 
+enum note {
+	l1 = 2000,
+	l2 = 1000,
+	l3 = 750,
+	l4 = 500,
+	l8 = 250,
+	l8p = 167,
+	l16 = 125
+};
+
+const uint32_t bell[] = {E5, D5, C5, D5, E5, E5, E5, D5, D5, D5, E5, E5, E5,
+					E5, D5, C5, D5, E5, E5, E5, D5, D5, E5, D5, C5};
+
+const uint32_t interval[] = {l3, l8, l4, l4, l4, l4, l2, l4, l4, l2, l4, l4, l2,
+					l3, l8, l4, l4, l4, l4, l2, l4, l4, l3, l8, l1};
+int bell_index = 0;
+int interval_index = 0;
+//int note_index = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -89,18 +120,40 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int pwm = 0;
+//  TIM3->ARR = bell[bell_index];
+//  TIM3->CCR3 = TIM3->ARR / 2;
+//  TIM4->ARR = interval[interval_index];
+
   while (1)
   {
-	  TIM3->CCR3 = pwm;
-	  if(++pwm == 2000) pwm = 0;
-	  HAL_Delay(1);
+//	  TIM3->ARR = bell[bell_index];
+//	  TIM3->CCR3 = TIM3->ARR / 2;
+//
+//	  HAL_Delay(interval[interval_index]);
+//
+//	  TIM3->CCR3 = 0;
+//
+//	  HAL_Delay(50);
+//
+//	  bell_index++;
+//	  interval_index++;
+//
+//	  if(bell_index >= sizeof(bell) / sizeof(bell[0])) {
+//		  bell_index = 0;
+//		  interval_index = 0;
+//		  HAL_Delay(1000);
+//	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -147,6 +200,17 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* TIM4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 /**
@@ -209,6 +273,51 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 15999;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 499;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -226,7 +335,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM4) {
+		TIM3->ARR = bell[bell_index];
+		TIM3->CCR3 = TIM3->ARR / 2;
 
+		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+
+		TIM4->ARR = interval[interval_index];
+
+		bell_index++;
+		interval_index++;
+
+		if(bell_index >= sizeof(bell) / sizeof(bell[0])) {
+			bell_index = 0;
+			interval_index = 0;
+		}
+
+		HAL_TIM_Base_Stop_IT(&htim4);
+		HAL_TIM_Base_Start_IT(&htim4);
+	}
+}
 /* USER CODE END 4 */
 
 /**
