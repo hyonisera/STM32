@@ -48,7 +48,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 uint16_t c1, c2;
-char tx_buf[10];
+char tx_buf[30];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -173,6 +173,12 @@ static void MX_NVIC_Init(void)
   /* USART3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(USART3_IRQn);
+  /* TIM3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM3_IRQn);
+  /* TIM4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 /**
@@ -359,7 +365,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2) {
 			c2 = TIM4->CCR2;
 			TIM4->CNT = 0;
-			sprintf(tx_buf, ">> %d\r\n", c2 - c1);
+			sprintf(tx_buf, "CCR1 = %d, CCR2 = %d >> %d\r\n", c1, c2, c2 - c1);
 			HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
 		}
 	}
