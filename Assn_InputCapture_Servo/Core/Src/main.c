@@ -114,9 +114,9 @@ int main(void)
   while (1)
   {
 	  //TIM3->CNT = 0;
-//	  TIM3->CCR1 = pwm - 1;
+//	  TIM4->CCR1 = pwm - 1;
 //	  if(++pwm == 2500) pwm = 500;
-//	  HAL_Delay(1);
+//	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
