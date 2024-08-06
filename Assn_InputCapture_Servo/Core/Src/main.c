@@ -47,7 +47,7 @@ TIM_HandleTypeDef htim4;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-uint16_t c1, c2;
+uint32_t c1, c2;
 char tx_buf[30];
 /* USER CODE END PV */
 
@@ -103,7 +103,8 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
@@ -360,11 +361,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM3) {
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
-			c1 = TIM4->CCR1;
+			c1 = TIM3->CCR1;
 		}
 		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2) {
-			c2 = TIM4->CCR2;
-			TIM4->CNT = 0;
+			c2 = TIM3->CCR2;
+			TIM3->CNT = 0;
 			sprintf(tx_buf, "CCR1 = %d, CCR2 = %d >> %d\r\n", c1, c2, c2 - c1);
 			HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
 		}
