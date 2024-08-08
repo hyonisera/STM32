@@ -97,15 +97,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  for(i = 0; i <= 255; i++) {
+	  for(i = 0; i <= 4095; i++) {
 		  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, i);
 		  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-		  HAL_Delay(10);
+		  HAL_Delay(1);
 	  }
-	  for(i = 255; i >= 0; i--) {
+	  for(i = 4095; i >= 0; i--) {
 		  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, i);
 		  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-		  HAL_Delay(10);
+		  HAL_Delay(1);
 	  }
     /* USER CODE END WHILE */
 
