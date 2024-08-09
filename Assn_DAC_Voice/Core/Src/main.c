@@ -45,7 +45,7 @@ DAC_HandleTypeDef hdac;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-
+static uint16_t openb_index;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,6 +99,7 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -270,7 +271,17 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM3) {
+		if(openb_index < DATA_NUM) {
+			uint16_t positive_data = (uint16_t)(openb[openb_index] + 32768);
+			uint16_t dac_data = positive_data / 16;
 
+			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, dac_data);
+
+			openb_index++;
+		}
+		else {
+			openb_index = 0;
+		}
 	}
 }
 /* USER CODE END 4 */
