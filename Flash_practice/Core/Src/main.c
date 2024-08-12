@@ -63,6 +63,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -106,8 +107,55 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  HAL_FLASH_Unlock();
 
+  FirstSector = GetSector(FLASH_USER_START_ADDR);
+
+  NbOfSectors = GetSector(FLASH_USER_END_ADDR) - FirstSector + 1;
+
+  EraseInitStruct.TypeErase = TYPEERASE_SECTORS;
+  EraseInitStruct.VoltageRange = VOLTAGE_RANGE_3;
+  EraseInitStruct.Sector = FirstSector;
+  EraseInitStruct.NbSectors = NbOfSectors;
+
+  if(HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError) != HAL_OK) {
+	  Error_Handler();
+  }
+
+  Address = FLASH_USER_START_ADDR;
+
+  while(Address < FLASH_USER_END_ADDR) {
+	  if(HAL_FLASH_Program(TYPEPROGRAM_WORD, Address, DATA_32) == HAL_OK) {
+		  Address = Address + 4;
+	  }
+	  else {
+		  Error_Handler();
+	  }
+  }
+
+  HAL_FLASH_Lock();
+
+  HAL_GPIO_WritePin(GPIOB, LED2_Pin, 1);
+
+  Address = FLASH_USER_START_ADDR;
+  MemoryProgramStatus = 0x0;
+
+  while(Address < FLASH_USER_END_ADDR) {
+	  data32 = *(__IO uint32_t*)Address;
+	  if(data32 != DATA_32) {
+		  MemoryProgramStatus++;
+	  }
+	  Address = Address + 4;
+  }
+
+  if(MemoryProgramStatus == 0) {
+	  HAL_GPIO_WritePin(GPIOB, LED1_Pin, 1);
+  }
+  else {
+	  Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -162,8 +210,76 @@ void SystemClock_Config(void)
   }
 }
 
-/* USER CODE BEGIN 4 */
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED3_Pin|LED2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : LED1_Pin LED3_Pin LED2_Pin */
+  GPIO_InitStruct.Pin = LED1_Pin|LED3_Pin|LED2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+static uint32_t GetSector(uint32_t Address)
+{
+	uint32_t sector = 0;
+	if((Address < ADDR_FLASH_SECTOR_1) && (Address >= ADDR_FLASH_SECTOR_0)) {
+		sector = FLASH_SECTOR_0;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_2) && (Address >= ADDR_FLASH_SECTOR_1)) {
+		sector = FLASH_SECTOR_1;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_3) && (Address >= ADDR_FLASH_SECTOR_2)) {
+		sector = FLASH_SECTOR_2;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_4) && (Address >= ADDR_FLASH_SECTOR_3)) {
+		sector = FLASH_SECTOR_3;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_5) && (Address >= ADDR_FLASH_SECTOR_4)) {
+		sector = FLASH_SECTOR_4;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_6) && (Address >= ADDR_FLASH_SECTOR_5)) {
+		sector = FLASH_SECTOR_5;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_7) && (Address >= ADDR_FLASH_SECTOR_6)) {
+		sector = FLASH_SECTOR_6;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_8) && (Address >= ADDR_FLASH_SECTOR_7)) {
+		sector = FLASH_SECTOR_7;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_9) && (Address >= ADDR_FLASH_SECTOR_8)) {
+		sector = FLASH_SECTOR_8;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_10) && (Address >= ADDR_FLASH_SECTOR_9)) {
+		sector = FLASH_SECTOR_9;
+	}
+	else if((Address < ADDR_FLASH_SECTOR_11) && (Address >= ADDR_FLASH_SECTOR_10)) {
+		sector = FLASH_SECTOR_10;
+	}
+	else {
+		sector = FLASH_SECTOR_11;
+	}
+	return sector;
+}
 /* USER CODE END 4 */
 
 /**
