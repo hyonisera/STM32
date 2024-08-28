@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 // 한국어 주석 테스트
+#include "data.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +54,7 @@ UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
-
+static uint16_t openb_index;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,7 +72,7 @@ static void MX_USART3_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint32_t buf[8000];
 /* USER CODE END 0 */
 
 /**
@@ -110,7 +111,27 @@ int main(void)
   MX_TIM2_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  memset(buf, 'a', 8000);
 
+  if(openb_index < DATA_NUM) {
+	  uint16_t positive_data = (uint16_t)abs(openb[openb_index]);
+	  uint16_t dac_data = positive_data>>4;
+
+	  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, dac_data);
+	  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+	  openb_index++;
+  }
+
+//  for(int i = 0; i < DATA_NUM; i++) {
+//	  openb[i] = (openb[i] + 32768) >> 4;
+//  }
+//  HAL_TIM_Base_Start(&htim4);
+//  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+//  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)&openb, DATA_NUM, DAC_ALIGN_12B_R);
+
+  HAL_TIM_Base_Start(&htim2);
+  HAL_ADC_Start_DMA(&hadc1, buf, 8000);
+  HAL_UART_Transmit_DMA(&huart3, (uint8_t*)&buf, 8000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -120,6 +141,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //HAL_UART_Transmit_DMA(&huart3, buf, 10000);
+	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
   }
   /* USER CODE END 3 */
 }
@@ -434,7 +457,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	HAL_UART_Transmit_DMA(&huart3, (uint8_t *)buf, 8000);
+	HAL_ADC_Start_DMA(&hadc1, buf, 8000);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+}
 /* USER CODE END 4 */
 
 /**
