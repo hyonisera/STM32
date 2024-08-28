@@ -60,8 +60,8 @@ all: main-build
 main-build: GPIO_practice.elf secondary-outputs
 
 # Tool invocations
-GPIO_practice.elf GPIO_practice.map: $(OBJS) $(USER_OBJS) C:\STM32CubeIDE\workspace\GPIO_practice\STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "GPIO_practice.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\STM32CubeIDE\workspace\GPIO_practice\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="GPIO_practice.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+GPIO_practice.elf GPIO_practice.map: $(OBJS) $(USER_OBJS) C:\STM32CubeIDE\workspace\Git\GPIO_practice\STM32F429ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "GPIO_practice.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\STM32CubeIDE\workspace\Git\GPIO_practice\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="GPIO_practice.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
